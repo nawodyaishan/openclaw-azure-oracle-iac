@@ -1,0 +1,13 @@
+# Copy this file to terraform.tfvars and fill in your values
+# Do NOT commit terraform.tfvars to version control
+
+subscription_id     = "your-azure-subscription-id"
+resource_group_name = "openclaw-rg"
+location            = "southeastasia"  # Singapore region
+environment         = "dev"
+
+# VM Configuration
+vm_name             = "openclaw-vm"
+vm_size             = "Standard_B2pts_v2"  # ARM64, 2 vCPU, 4GB RAM - Free tier eligible
+admin_username      = "azureuser"
+ssh_public_key_path = "~/.ssh/id_rsa.pub"

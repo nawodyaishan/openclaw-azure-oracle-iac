@@ -43,6 +43,12 @@ variable "vm_size" {
   default     = "Standard_B2pts_v2"
 }
 
+variable "disk_size_gb" {
+  description = "Size of the virtual machine OS disk in GB"
+  type        = string
+  default     = "64"
+}
+
 variable "admin_username" {
   description = "Admin username for the VM"
   type        = string

@@ -124,7 +124,7 @@ resource "azurerm_linux_virtual_machine" "main" {
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
-    disk_size_gb         = 64
+    disk_size_gb         = var.disk_size_gb
   }
 
   # Ubuntu 22.04 LTS ARM64

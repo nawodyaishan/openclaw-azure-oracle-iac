@@ -38,9 +38,9 @@ variable "vm_name" {
 }
 
 variable "vm_size" {
-  description = "Size of the virtual machine (B2pts_v2 = 2 vCPU, 4GB RAM, ARM64)"
+  description = "Size of the virtual machine (B2pls_v2 = 2 vCPU, 4GB RAM, ARM64)"
   type        = string
-  default     = "Standard_B2pts_v2"
+  default     = "Standard_B2pls_v2"
 }
 
 variable "disk_size_gb" {

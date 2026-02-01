@@ -12,7 +12,7 @@ variable "resource_group_name" {
 variable "location" {
   description = "Azure region for resources"
   type        = string
-  default     = "southeastasia"  # Singapore region
+  default     = "centralindia"  # Central India - Azure for Students allowed region
 }
 
 variable "environment" {

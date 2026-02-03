@@ -112,9 +112,6 @@ resource "azurerm_linux_virtual_machine" "main" {
   size                = var.vm_size  # Standard_B2pts_v2: 2 vCPU, 4GB RAM, ARM64
   admin_username      = var.admin_username
 
-  # Cloud-init script for Docker + OpenClaw setup
-  custom_data = filebase64("${path.module}/cloud-init.yaml")
-
   network_interface_ids = [
     azurerm_network_interface.main.id,
   ]

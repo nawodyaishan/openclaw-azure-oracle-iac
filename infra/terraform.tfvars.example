@@ -3,11 +3,17 @@
 
 subscription_id     = "your-azure-subscription-id"
 resource_group_name = "openclaw-rg"
-location            = "southeastasia"  # Singapore region
+location            = "centralindia"  # Azure for Students allowed region
 environment         = "dev"
 
 # VM Configuration
 vm_name             = "openclaw-vm"
-vm_size             = "Standard_B2pts_v2"  # ARM64, 2 vCPU, 4GB RAM - Free tier eligible
+vm_size             = "Standard_B2pls_v2"  # ARM64, 2 vCPU, 4GB RAM - ~$25/month
+disk_size_gb        = 64
 admin_username      = "azureuser"
-ssh_public_key_path = "~/.ssh/id_rsa.pub"
+ssh_public_key_path = "~/.ssh/azure_openclaw.pub"
+
+# Alternative VM sizes:
+# - Standard_B2pts_v2: 2 vCPU, 1GB RAM (free tier, but low memory)
+# - Standard_B2pls_v2: 2 vCPU, 4GB RAM (recommended, ~$25/month)
+# - Standard_B2ps_v2:  2 vCPU, 8GB RAM (~$50/month)

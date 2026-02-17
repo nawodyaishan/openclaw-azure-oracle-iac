@@ -146,14 +146,14 @@ resource "oci_core_instance" "main" {
   }
 
   create_vnic_details {
-    subnet_id = oci_core_subnet.public.id
-    nsg_ids   = [oci_core_network_security_group.openclaw_nsg.id]
+    subnet_id        = oci_core_subnet.public.id
+    nsg_ids          = [oci_core_network_security_group.openclaw_nsg.id]
     assign_public_ip = true
   }
 
   metadata = {
     ssh_authorized_keys = file(var.ssh_public_key_path)
-    user_data           = base64encode(templatefile("${path.module}/cloud-init.tftpl", {
+    user_data = base64encode(templatefile("${path.module}/cloud-init.tftpl", {
       gateway_token = random_password.gateway_token.result
     }))
   }

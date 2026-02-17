@@ -1,9 +1,7 @@
-# Uncomment and configure for remote state storage
-# terraform {
-#   backend "azurerm" {
-#     resource_group_name  = "tfstate-rg"
-#     storage_account_name = "tfstateocl"
-#     container_name       = "tfstate"
-#     key                  = "openclaw.terraform.tfstate"
-#   }
-# }
+terraform {
+  backend "azurerm" {
+    # Resource Group, Storage Account, and Container are configured via backend.conf
+    # Key must be unique per environment
+    key = "terraform.tfstate"
+  }
+}

@@ -28,6 +28,18 @@ This repository contains Infrastructure as Code (IaC) using Terraform to deploy 
     *   **Azure:** Integrated Recovery Services Vault (Daily Backups).
     *   **Oracle:** (Manual setup recommended for Free Tier).
 
+## 💰 Cost Comparison (Estimated: 2026 Feb 18 via Infracost)
+
+| Feature | Azure (Student B2pls_v2) | Oracle (Always Free A1) |
+|---------|--------------------------|-------------------------|
+| **Compute** | $16.35/mo | **$0.00/mo** |
+| **Storage** | $3.31/mo (64GB Disk) | **$0.00/mo (50GB)** |
+| **Network** | $3.65/mo (Public IP) | **$0.00/mo** |
+| **Backup** | ~$16.31/mo (Daily + Retention) | Manual/Scripts |
+| **Total** | **~$39.62/mo*** | **$0.00/mo** |
+
+*\*Azure costs are often covered by Student Credits ($100/yr). Oracle is Always Free.*
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -155,17 +167,7 @@ openclaw-azure-iac/
 └── README.md                       # This file
 ```
 
-## 💰 Cost Comparison (Estimated: 2026 Feb 18 via Infracost)
 
-| Feature | Azure (Student B2pls_v2) | Oracle (Always Free A1) |
-|---------|--------------------------|-------------------------|
-| **Compute** | $16.35/mo | **$0.00/mo** |
-| **Storage** | $3.31/mo (64GB Disk) | **$0.00/mo (50GB)** |
-| **Network** | $3.65/mo (Public IP) | **$0.00/mo** |
-| **Backup** | ~$16.31/mo (Daily + Retention) | Manual/Scripts |
-| **Total** | **~$39.62/mo*** | **$0.00/mo** |
-
-*\*Azure costs are often covered by Student Credits ($100/yr). Oracle is Always Free.*
 
 ## ❓ Troubleshooting
 

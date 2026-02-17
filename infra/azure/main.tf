@@ -51,7 +51,7 @@ resource "azurerm_network_security_group" "main" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = "*"
+    source_address_prefix      = var.allowed_ssh_cidr
     destination_address_prefix = "*"
   }
 
@@ -104,6 +104,15 @@ resource "azurerm_network_interface_security_group_association" "main" {
   network_security_group_id = azurerm_network_security_group.main.id
 }
 
+# -------------------------------------------------------------------------
+# Security (Token Generation)
+# -------------------------------------------------------------------------
+
+resource "random_password" "gateway_token" {
+  length  = 32
+  special = false
+}
+
 # Virtual Machine - ARM64 B2pts_v2 (Azure for Students free tier eligible)
 resource "azurerm_linux_virtual_machine" "main" {
   name                = var.vm_name
@@ -135,7 +144,55 @@ resource "azurerm_linux_virtual_machine" "main" {
     version   = "latest"
   }
 
+  custom_data = base64encode(templatefile("${path.module}/cloud-init.tftpl", {
+    gateway_token = random_password.gateway_token.result
+  }))
+
   tags = merge(var.tags, {
     environment = var.environment
   })
+}
+
+# -------------------------------------------------------------------------
+# Automated Backups (Phase 1.2 Sustainable Action Plan)
+# -------------------------------------------------------------------------
+
+resource "azurerm_recovery_services_vault" "main" {
+  name                = "${var.vm_name}-rsv"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  sku                 = "Standard"
+
+  soft_delete_enabled = true
+
+  tags = var.tags
+}
+
+resource "azurerm_backup_policy_vm" "daily" {
+  name                = "${var.vm_name}-daily-policy"
+  resource_group_name = azurerm_resource_group.main.name
+  recovery_vault_name = azurerm_recovery_services_vault.main.name
+
+  timezone = "UTC"
+
+  backup {
+    frequency = "Daily"
+    time      = "23:00"
+  }
+
+  retention_daily {
+    count = 7
+  }
+
+  retention_weekly {
+    count    = 4
+    weekdays = ["Sunday"]
+  }
+}
+
+resource "azurerm_backup_protected_vm" "main" {
+  resource_group_name = azurerm_resource_group.main.name
+  recovery_vault_name = azurerm_recovery_services_vault.main.name
+  source_vm_id        = azurerm_linux_virtual_machine.main.id
+  backup_policy_id    = azurerm_backup_policy_vm.daily.id
 }

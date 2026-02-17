@@ -5,6 +5,7 @@ subscription_id     = "your-azure-subscription-id"
 resource_group_name = "openclaw-rg"
 location            = "centralindia"  # Azure for Students allowed region
 environment         = "dev"
+allowed_ssh_cidr    = "0.0.0.0/0"     # REPLACE WITH YOUR IP: e.g., "203.0.113.1/32"
 
 # VM Configuration
 vm_name             = "openclaw-vm"

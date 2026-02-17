@@ -1,0 +1,9 @@
+tenancy_ocid     = "ocid1.tenancy.oc1..aaaa..."
+user_ocid        = "ocid1.user.oc1..aaaa..."
+fingerprint      = "xx:xx:xx:xx..."
+private_key_path = "~/.oci/oci_api_key.pem"
+region           = "us-ashburn-1"
+compartment_ocid = "ocid1.tenancy.oc1..aaaa..." # Use Tenancy OCID for Root Compartment
+
+ssh_public_key_path = "~/.ssh/id_rsa.pub"
+allowed_ssh_cidr    = "1.2.3.4/32"

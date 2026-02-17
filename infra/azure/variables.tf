@@ -60,3 +60,9 @@ variable "ssh_public_key_path" {
   type        = string
   default     = "~/.ssh/id_rsa.pub"
 }
+
+variable "allowed_ssh_cidr" {
+  description = "CIDR block allowed to access via SSH (e.g., your public IP)"
+  type        = string
+  default     = "0.0.0.0/0" # Default is open, but user should override this
+}

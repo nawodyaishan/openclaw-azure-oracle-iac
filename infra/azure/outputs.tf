@@ -27,3 +27,9 @@ output "ssh_connection" {
   description = "SSH connection command"
   value       = "ssh ${var.admin_username}@${azurerm_public_ip.main.ip_address}"
 }
+
+output "gateway_token" {
+  description = "Auto-generated OpenClaw Gateway Token (Secure)"
+  value       = random_password.gateway_token.result
+  sensitive   = true
+}

@@ -30,7 +30,11 @@ security: ## Scan for security issues (tfsec)
 
 cost: ## Estimate costs (infracost)
 	@echo "running infracost..."
-	@if command -v infracost >/dev/null; then infracost breakdown --path .; else echo "⚠️ infracost not installed. 'brew install infracost'"; fi
+	@if command -v infracost >/dev/null; then \
+		infracost breakdown --path . || echo "⚠️ Cost estimation failed (Missing API Key?)."; \
+	else \
+		echo "⚠️ infracost not installed. 'brew install infracost'"; \
+	fi
 
 docs: ## Generate Documentation (terraform-docs)
 	@echo "Generating docs..."
@@ -58,14 +62,16 @@ setup-state-azure: ## Create Azure Storage Account for Remote State
 	echo "storage_account_name = \"$$SA_NAME\"" >> $(AZURE_DIR)/backend.conf; \
 	echo "container_name       = \"tfstate\"" >> $(AZURE_DIR)/backend.conf; \
 	echo "key                  = \"terraform.tfstate\"" >> $(AZURE_DIR)/backend.conf; \
-	echo "✅ Azure Remote State setup complete. Configuration saved to $(AZURE_DIR)/backend.conf"
+	cp $(AZURE_DIR)/backend.tf.example $(AZURE_DIR)/backend.tf; \
+	echo "✅ Azure Remote State setup complete. Configuration saved to $(AZURE_DIR)/backend.conf and backend.tf enabled."
 
-init-azure: ## Initialize Terraform for Azure (Auto-configures backend)
+init-azure: ## Initialize Terraform for Azure (Auto-detects Local/Remote)
 	@echo "Initializing Azure..."
-	@if [ -f $(AZURE_DIR)/backend.conf ]; then \
+	@if [ -f $(AZURE_DIR)/backend.tf ]; then \
+		echo "🌍 Remote State detected (backend.tf exists). Using backend.conf..."; \
 		cd $(AZURE_DIR) && terraform init -backend-config=backend.conf; \
 	else \
-		echo "⚠️ No backend.conf found. Running standard init (Local State). Run 'make setup-state-azure' to switch to Remote State."; \
+		echo "⚠️ No backend.tf found. Running standard init (Local State). Run 'make setup-state-azure' to switch to Remote State."; \
 		cd $(AZURE_DIR) && terraform init; \
 	fi
 
@@ -103,7 +109,8 @@ setup-state-oracle: ## Guide for Oracle Remote State setup
 	@echo "Oracle Remote State Setup Instructions:"
 	@echo "1. Create an Object Storage Bucket named 'tfstate' in your OCI Console."
 	@echo "2. Generate 'Customer Secret Keys' (S3 Compatible) for your user in OCI Console."
-	@echo "3. Create a file '$(ORACLE_DIR)/backend.conf' with the following content:"
+	@echo "3. Copy example backend: cp $(ORACLE_DIR)/backend.tf.example $(ORACLE_DIR)/backend.tf"
+	@echo "4. Create a file '$(ORACLE_DIR)/backend.conf' with the following content:"
 	@echo "   bucket   = \"tfstate\""
 	@echo "   key      = \"terraform.tfstate\""
 	@echo "   region   = \"us-ashburn-1\" (or your region)"
@@ -113,12 +120,13 @@ setup-state-oracle: ## Guide for Oracle Remote State setup
 	@echo ""
 	@echo "💡 Use 'oci os ns get' to find your namespace."
 
-init-oracle: ## Initialize Terraform for Oracle Cloud (Auto-configures backend)
+init-oracle: ## Initialize Terraform for Oracle Cloud (Auto-detects Local/Remote)
 	@echo "Initializing Oracle Cloud..."
-	@if [ -f $(ORACLE_DIR)/backend.conf ]; then \
+	@if [ -f $(ORACLE_DIR)/backend.tf ]; then \
+		echo "🌍 Remote State detected (backend.tf exists). Using backend.conf..."; \
 		cd $(ORACLE_DIR) && terraform init -backend-config=backend.conf; \
 	else \
-		echo "⚠️ No backend.conf found. Running standard init (Local State). Run 'make setup-state-oracle' for instructions."; \
+		echo "⚠️ No backend.tf found. Running standard init (Local State). Run 'make setup-state-oracle' for instructions."; \
 		cd $(ORACLE_DIR) && terraform init; \
 	fi
 

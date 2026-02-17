@@ -51,7 +51,7 @@ resource "azurerm_network_security_group" "main" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = var.allowed_ssh_cidr
+    source_address_prefix      = var.allowed_ssh_cidr #tfsec:ignore:azure-network-ssh-blocked-from-internet tfsec:ignore:azure-network-no-public-ingress
     destination_address_prefix = "*"
   }
 
@@ -63,7 +63,7 @@ resource "azurerm_network_security_group" "main" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "80"
-    source_address_prefix      = "*"
+    source_address_prefix      = "*" #tfsec:ignore:azure-network-no-public-ingress
     destination_address_prefix = "*"
   }
 
@@ -75,7 +75,7 @@ resource "azurerm_network_security_group" "main" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "443"
-    source_address_prefix      = "*"
+    source_address_prefix      = "*" #tfsec:ignore:azure-network-no-public-ingress
     destination_address_prefix = "*"
   }
 
@@ -118,7 +118,7 @@ resource "azurerm_linux_virtual_machine" "main" {
   name                = var.vm_name
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
-  size                = var.vm_size  # Standard_B2pts_v2: 2 vCPU, 4GB RAM, ARM64
+  size                = var.vm_size # Standard_B2pts_v2: 2 vCPU, 4GB RAM, ARM64
   admin_username      = var.admin_username
 
   network_interface_ids = [

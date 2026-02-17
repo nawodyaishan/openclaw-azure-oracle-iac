@@ -15,12 +15,65 @@ help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 # -------------------------------------------------------------------------
+# DevOps Best Practices
+# -------------------------------------------------------------------------
+
+lint: ## Lint Terraform code (tflint + fmt)
+	@echo "running terraform fmt..."
+	@terraform fmt -recursive
+	@echo "running tflint..."
+	@if command -v tflint >/dev/null; then tflint --recursive; else echo "⚠️ tflint not installed. 'brew install tflint'"; fi
+
+security: ## Scan for security issues (tfsec)
+	@echo "running tfsec..."
+	@if command -v tfsec >/dev/null; then tfsec .; else echo "⚠️ tfsec not installed. 'brew install tfsec'"; fi
+
+cost: ## Estimate costs (infracost)
+	@echo "running infracost..."
+	@if command -v infracost >/dev/null; then \
+		infracost breakdown --path . || echo "⚠️ Cost estimation failed (Missing API Key?)."; \
+	else \
+		echo "⚠️ infracost not installed. 'brew install infracost'"; \
+	fi
+
+docs: ## Generate Documentation (terraform-docs)
+	@echo "Generating docs..."
+	@if command -v terraform-docs >/dev/null; then \
+		terraform-docs markdown table $(AZURE_DIR) > $(AZURE_DIR)/README.md; \
+		terraform-docs markdown table $(ORACLE_DIR) > $(ORACLE_DIR)/README.md; \
+		echo "✅ Updated $(AZURE_DIR)/README.md"; \
+		echo "✅ Updated $(ORACLE_DIR)/README.md"; \
+	else \
+		echo "⚠️ terraform-docs not installed. 'brew install terraform-docs'"; \
+	fi
+
+# -------------------------------------------------------------------------
 # Azure Targets
 # -------------------------------------------------------------------------
 
-init-azure: ## Initialize Terraform for Azure
+setup-state-azure: ## Create Azure Storage Account for Remote State
+	@echo "Creating Azure Remote State resources..."
+	@RANDOM_ID=$$(openssl rand -hex 6); \
+	SA_NAME="openclawstate$$RANDOM_ID"; \
+	az group create --name openclaw-state-rg --location centralindia; \
+	az storage account create --name $$SA_NAME --resource-group openclaw-state-rg --sku Standard_LRS --encryption-services blob; \
+	az storage container create --name tfstate --account-name $$SA_NAME; \
+	echo "resource_group_name  = \"openclaw-state-rg\"" > $(AZURE_DIR)/backend.conf; \
+	echo "storage_account_name = \"$$SA_NAME\"" >> $(AZURE_DIR)/backend.conf; \
+	echo "container_name       = \"tfstate\"" >> $(AZURE_DIR)/backend.conf; \
+	echo "key                  = \"terraform.tfstate\"" >> $(AZURE_DIR)/backend.conf; \
+	cp $(AZURE_DIR)/backend.tf.example $(AZURE_DIR)/backend.tf; \
+	echo "✅ Azure Remote State setup complete. Configuration saved to $(AZURE_DIR)/backend.conf and backend.tf enabled."
+
+init-azure: ## Initialize Terraform for Azure (Auto-detects Local/Remote)
 	@echo "Initializing Azure..."
-	@cd $(AZURE_DIR) && terraform init
+	@if [ -f $(AZURE_DIR)/backend.tf ]; then \
+		echo "🌍 Remote State detected (backend.tf exists). Using backend.conf..."; \
+		cd $(AZURE_DIR) && terraform init -backend-config=backend.conf; \
+	else \
+		echo "⚠️ No backend.tf found. Running standard init (Local State). Run 'make setup-state-azure' to switch to Remote State."; \
+		cd $(AZURE_DIR) && terraform init; \
+	fi
 
 validate-azure: ## Validate Azure configuration
 	@echo "Validating Azure..."
@@ -52,9 +105,30 @@ token-azure: ## Get Azure Gateway Token
 # Oracle Cloud Targets
 # -------------------------------------------------------------------------
 
-init-oracle: ## Initialize Terraform for Oracle Cloud
+setup-state-oracle: ## Guide for Oracle Remote State setup
+	@echo "Oracle Remote State Setup Instructions:"
+	@echo "1. Create an Object Storage Bucket named 'tfstate' in your OCI Console."
+	@echo "2. Generate 'Customer Secret Keys' (S3 Compatible) for your user in OCI Console."
+	@echo "3. Copy example backend: cp $(ORACLE_DIR)/backend.tf.example $(ORACLE_DIR)/backend.tf"
+	@echo "4. Create a file '$(ORACLE_DIR)/backend.conf' with the following content:"
+	@echo "   bucket   = \"tfstate\""
+	@echo "   key      = \"terraform.tfstate\""
+	@echo "   region   = \"us-ashburn-1\" (or your region)"
+	@echo "   endpoint = \"https://{namespace}.compat.objectstorage.{region}.oraclecloud.com\""
+	@echo "   access_key = \"YOUR_ACCESS_KEY\""
+	@echo "   secret_key = \"YOUR_SECRET_KEY\""
+	@echo ""
+	@echo "💡 Use 'oci os ns get' to find your namespace."
+
+init-oracle: ## Initialize Terraform for Oracle Cloud (Auto-detects Local/Remote)
 	@echo "Initializing Oracle Cloud..."
-	@cd $(ORACLE_DIR) && terraform init
+	@if [ -f $(ORACLE_DIR)/backend.tf ]; then \
+		echo "🌍 Remote State detected (backend.tf exists). Using backend.conf..."; \
+		cd $(ORACLE_DIR) && terraform init -backend-config=backend.conf; \
+	else \
+		echo "⚠️ No backend.tf found. Running standard init (Local State). Run 'make setup-state-oracle' for instructions."; \
+		cd $(ORACLE_DIR) && terraform init; \
+	fi
 
 validate-oracle: ## Validate Oracle configuration
 	@echo "Validating Oracle..."

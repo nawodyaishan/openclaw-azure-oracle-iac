@@ -23,6 +23,7 @@ This repository contains Infrastructure as Code (IaC) using Terraform to deploy 
 
 ### Reliability
 *   **Encrypted State:** Sensitive data (tokens) are marked `sensitive` in Terraform.
+*   **Remote State (Optional):** Supports storing Terraform state in Azure Storage or OCI Object Storage for safety.
 *   **Automated Backups:**
     *   **Azure:** Integrated Recovery Services Vault (Daily Backups).
     *   **Oracle:** (Manual setup recommended for Free Tier).
@@ -33,6 +34,8 @@ This repository contains Infrastructure as Code (IaC) using Terraform to deploy 
 1.  **Cloud Account:** Azure Subscription OR Oracle Cloud Account.
 2.  **Terraform:** `brew install terraform`
 3.  **SSH Key:** `ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa`
+4.  *(Optional)* **Azure CLI / OCI CLI** for remote state setup.
+5.  *(Optional)* **DevOps Tools:** `brew install tflint tfsec infracost terraform-docs`
 
 ### 1. Configure
 
@@ -51,30 +54,43 @@ cp terraform.tfvars.example terraform.tfvars
 nano terraform.tfvars
 ```
 **Required Oracle Variables:**
-*   `tenancy_ocid`: Found in Profile -> Tenancy.
-*   `user_ocid`: Found in Profile -> User Settings.
-*   `fingerprint`: Generated when you add an API Key.
-*   `private_key_path`: Path to your `.pem` key file.
-*   `region`: e.g., `us-ashburn-1`.
-*   `allowed_ssh_cidr`: Your public IP.
+*   `tenancy_ocid`, `user_ocid`, `fingerprint`, `private_key_path`, `region`, `allowed_ssh_cidr`.
 
-### 2. Deploy
+### 2. Setup Remote State (Recommended)
+Store your infrastructure state in the cloud to prevent data loss.
+
+**For Azure:**
+```bash
+make setup-state-azure  # Creates Storage Account & Generates backend.conf
+make init-azure         # Initializes with remote backend
+```
+
+**For Oracle:**
+```bash
+make setup-state-oracle # Shows instructions for OCI Object Storage
+# Follow instructions to create backend.conf
+make init-oracle        # Initializes with remote backend
+```
+
+*(You can skip this to use local state, but backing up `infra/` is critical).*
+
+### 3. Deploy
 
 Run from the root directory:
 
 **Deploy to Azure:**
 ```bash
-make init-azure     # First time only
+make init-azure     # If not run in step 2
 make deploy-azure   # Validates, Plans, and Applies
 ```
 
 **Deploy to Oracle:**
 ```bash
-make init-oracle    # First time only
+make init-oracle    # If not run in step 2
 make deploy-oracle  # Validates, Plans, and Applies
 ```
 
-### 3. Connect & Configure
+### 4. Connect & Configure
 The Makefile handles IP retrieval and SSH commands automatically.
 
 **Connect:**
@@ -95,7 +111,7 @@ openclaw --version
 openclaw configure
 ```
 
-### 4. Get Gateway Token
+### 5. Get Gateway Token
 If you need your secure Gateway Token for external clients:
 ```bash
 make token-azure
@@ -105,15 +121,22 @@ make token-oracle
 
 ## 🛠️ Operations (Makefile)
 
+### Deployment & Access
 | Target | Description |
 |--------|-------------|
-| `deploy-azure` | Deploy entire stack to Azure. |
-| `deploy-oracle` | Deploy entire stack to Oracle Cloud. |
-| `ssh-azure` | SSH into Azure VM. |
-| `ssh-oracle` | SSH into Oracle VM. |
-| `destroy-azure` | Destroy Azure resources (Stop billing). |
-| `destroy-oracle` | Destroy Oracle resources. |
+| `deploy-[cloud]` | Deploy entire stack. |
+| `ssh-[cloud]` | SSH into VM. |
+| `destroy-[cloud]` | Destroy resources. |
 | `token-[cloud]` | Reveal the auto-generated `GATEWAY_TOKEN`. |
+| `setup-state-[cloud]` | Setup Remote State Storage. |
+
+### DevOps Best Practices
+| Target | Description | Tool Required |
+|--------|-------------|---------------|
+| `make lint` | Check code style & errors. | `tflint` |
+| `make security` | Scan for security vulnerabilities. | `tfsec` |
+| `make cost` | Estimate monthly cloud costs. | `infracost` |
+| `make docs` | Auto-generate README inputs/outputs. | `terraform-docs` |
 
 ## 📂 Folder Structure
 
@@ -122,26 +145,27 @@ openclaw-azure-iac/
 ├── Makefile                        # Multi-cloud commands
 ├── infra/
 │   ├── azure/                      # Azure Terraform config
+│   │   ├── backend.tf              # Remote State Config
 │   │   ├── main.tf                 # VM, Networking, Backups
-│   │   ├── variables.tf
 │   │   └── ...
 │   └── oracle/                     # Oracle Terraform config
+│       ├── backend.tf              # Remote State Config
 │       ├── main.tf                 # VCN, NSG, Compute
-│       ├── variables.tf
 │       └── ...
 └── README.md                       # This file
 ```
 
-## 💰 Cost Comparison
+## 💰 Cost Comparison (Estimated: 2026 Feb 18 via Infracost)
 
 | Feature | Azure (Student B2pls_v2) | Oracle (Always Free A1) |
 |---------|--------------------------|-------------------------|
-| **CPU** | 2 vCPU | **4 OCPU (Ampere ARM64)** |
-| **RAM** | 4 GB | **24 GB** |
-| **Cost** | ~$36/mo (Covered by Setup Credit) | **$0.00/mo** |
-| **Backups** | Integrated (Paid) | Manual/Scripts (Free) |
+| **Compute** | $16.35/mo | **$0.00/mo** |
+| **Storage** | $3.31/mo (64GB Disk) | **$0.00/mo (50GB)** |
+| **Network** | $3.65/mo (Public IP) | **$0.00/mo** |
+| **Backup** | ~$16.31/mo (Daily + Retention) | Manual/Scripts |
+| **Total** | **~$39.62/mo*** | **$0.00/mo** |
 
-*Oracle Free Tier is highly recommended for personal use due to the generous resources.*
+*\*Azure costs are often covered by Student Credits ($100/yr). Oracle is Always Free.*
 
 ## ❓ Troubleshooting
 

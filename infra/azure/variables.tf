@@ -12,7 +12,7 @@ variable "resource_group_name" {
 variable "location" {
   description = "Azure region for resources"
   type        = string
-  default     = "centralindia"  # Central India - Azure for Students allowed region
+  default     = "centralindia" # Central India - Azure for Students allowed region
 }
 
 variable "environment" {
@@ -25,8 +25,8 @@ variable "tags" {
   description = "Tags to apply to all resources"
   type        = map(string)
   default = {
-    project     = "openclaw"
-    managed_by  = "terraform"
+    project    = "openclaw"
+    managed_by = "terraform"
   }
 }
 

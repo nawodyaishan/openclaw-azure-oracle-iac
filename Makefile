@@ -1,11 +1,12 @@
-# OpenClaw Azure Infrastructure Makefile
+# OpenClaw Multi-Cloud Infrastructure Makefile
 
 # Configuration
-TF_DIR := infra
+AZURE_DIR := infra/azure
+ORACLE_DIR := infra/oracle
 SSH_KEY := ~/.ssh/id_rsa
 TF_PLAN := tfplan
 
-.PHONY: help init validate plan deploy destroy ssh check clean
+.PHONY: help init-azure init-oracle validate-azure validate-oracle plan-azure plan-oracle deploy-azure deploy-oracle destroy-azure destroy-oracle ssh-azure ssh-oracle token-azure token-oracle
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -13,47 +14,73 @@ help: ## Show this help message
 	@echo 'Targets:'
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-init: ## Initialize Terraform (download providers, modules)
-	@echo "Initializing Terraform..."
-	@cd $(TF_DIR) && terraform init
+# -------------------------------------------------------------------------
+# Azure Targets
+# -------------------------------------------------------------------------
 
-validate: ## Validate Terraform configuration syntax
-	@echo "Validating configuration..."
-	@cd $(TF_DIR) && terraform validate
+init-azure: ## Initialize Terraform for Azure
+	@echo "Initializing Azure..."
+	@cd $(AZURE_DIR) && terraform init
 
-plan: validate ## Preview changes before applying
-	@echo "Planning deployment..."
-	@cd $(TF_DIR) && terraform plan -out=$(TF_PLAN)
+validate-azure: ## Validate Azure configuration
+	@echo "Validating Azure..."
+	@cd $(AZURE_DIR) && terraform validate
 
-deploy: plan ## Deploy infrastructure to Azure
+plan-azure: validate-azure ## Preview Azure changes
+	@echo "Planning Azure deployment..."
+	@cd $(AZURE_DIR) && terraform plan -out=$(TF_PLAN)
+
+deploy-azure: plan-azure ## Deploy to Azure
 	@echo "Deploying to Azure..."
-	@cd $(TF_DIR) && terraform apply $(TF_PLAN)
-	@rm $(TF_DIR)/$(TF_PLAN)
+	@cd $(AZURE_DIR) && terraform apply $(TF_PLAN)
+	@rm $(AZURE_DIR)/$(TF_PLAN)
 
-destroy: ## Destroy all infrastructure (DANGER!)
-	@echo "Destroying infrastructure..."
-	@cd $(TF_DIR) && terraform destroy
+destroy-azure: ## Destroy Azure infrastructure
+	@echo "Destroying Azure infrastructure..."
+	@cd $(AZURE_DIR) && terraform destroy
 
-ssh: ## SSH into the OpenClaw VM
-	@echo "Connecting to VM..."
-	@IP=$$(cd $(TF_DIR) && terraform output -raw public_ip_address); \
+ssh-azure: ## SSH into Azure VM
+	@echo "Connecting to Azure VM..."
+	@IP=$$(cd $(AZURE_DIR) && terraform output -raw public_ip_address); \
 	ssh -i $(SSH_KEY) azureuser@$$IP
 
-token: ## Get the secure OpenClaw Gateway Token
-	@echo "Retrieving Gateway Token..."
-	@cd $(TF_DIR) && terraform output -raw gateway_token
+token-azure: ## Get Azure Gateway Token
+	@echo "Retrieving Azure Gateway Token..."
+	@cd $(AZURE_DIR) && terraform output -raw gateway_token
 
-check: ## Verify OpenClaw installation status on remote VM
-	@echo "Checking OpenClaw status..."
-	@IP=$$(cd $(TF_DIR) && terraform output -raw public_ip_address); \
-	ssh -i $(SSH_KEY) azureuser@$$IP "openclaw --version && echo '✅ OpenClaw is installed' || echo '❌ OpenClaw not found'"
+# -------------------------------------------------------------------------
+# Oracle Cloud Targets
+# -------------------------------------------------------------------------
 
-logs: ## Tail cloud-init logs on remote VM
-	@echo "Streaming cloud-init logs..."
-	@IP=$$(cd $(TF_DIR) && terraform output -raw public_ip_address); \
-	ssh -i $(SSH_KEY) azureuser@$$IP "tail -f /var/log/cloud-init-output.log"
+init-oracle: ## Initialize Terraform for Oracle Cloud
+	@echo "Initializing Oracle Cloud..."
+	@cd $(ORACLE_DIR) && terraform init
 
-clean: ## Clean up local Terraform state backup and plan files
-	@echo "Cleaning up..."
-	@rm -f $(TF_DIR)/$(TF_PLAN)
-	@rm -f $(TF_DIR)/*.backup
+validate-oracle: ## Validate Oracle configuration
+	@echo "Validating Oracle..."
+	@cd $(ORACLE_DIR) && terraform validate
+
+plan-oracle: validate-oracle ## Preview Oracle changes
+	@echo "Planning Oracle deployment..."
+	@cd $(ORACLE_DIR) && terraform plan -out=$(TF_PLAN)
+
+deploy-oracle: plan-oracle ## Deploy to Oracle Cloud
+	@echo "Deploying to Oracle Cloud..."
+	@cd $(ORACLE_DIR) && terraform apply $(TF_PLAN)
+	@rm $(ORACLE_DIR)/$(TF_PLAN)
+
+destroy-oracle: ## Destroy Oracle infrastructure
+	@echo "Destroying Oracle infrastructure..."
+	@cd $(ORACLE_DIR) && terraform destroy
+
+ssh-oracle: ## SSH into Oracle VM
+	@echo "Connecting to Oracle VM..."
+	@IP=$$(cd $(ORACLE_DIR) && terraform output -raw public_ip); \
+	ssh -i $(SSH_KEY) ubuntu@$$IP
+
+token-oracle: ## Get Oracle Gateway Token
+	@echo "Retrieving Oracle Gateway Token..."
+	@cd $(ORACLE_DIR) && terraform output -raw gateway_token
+
+clean: ## Clean up plan files
+	@rm -f $(AZURE_DIR)/$(TF_PLAN) $(ORACLE_DIR)/$(TF_PLAN)

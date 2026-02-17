@@ -155,16 +155,17 @@ openclaw-azure-iac/
 └── README.md                       # This file
 ```
 
-## 💰 Cost Comparison
+## 💰 Cost Comparison (Estimated: 2026 Feb 18 via Infracost)
 
 | Feature | Azure (Student B2pls_v2) | Oracle (Always Free A1) |
 |---------|--------------------------|-------------------------|
-| **CPU** | 2 vCPU | **4 OCPU (Ampere ARM64)** |
-| **RAM** | 4 GB | **24 GB** |
-| **Cost** | ~$36/mo (Covered by Setup Credit) | **$0.00/mo** |
-| **Backups** | Integrated (Paid) | Manual/Scripts (Free) |
+| **Compute** | $16.35/mo | **$0.00/mo** |
+| **Storage** | $3.31/mo (64GB Disk) | **$0.00/mo (50GB)** |
+| **Network** | $3.65/mo (Public IP) | **$0.00/mo** |
+| **Backup** | ~$16.31/mo (Daily + Retention) | Manual/Scripts |
+| **Total** | **~$39.62/mo*** | **$0.00/mo** |
 
-*Oracle Free Tier is highly recommended for personal use due to the generous resources.*
+*\*Azure costs are often covered by Student Credits ($100/yr). Oracle is Always Free.*
 
 ## ❓ Troubleshooting
 

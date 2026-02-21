@@ -11,8 +11,9 @@ This repository contains Infrastructure as Code (IaC) using Terraform to deploy 
 *   **Oracle Cloud:** Tuned for Always Free Tier (`VM.Standard.A1.Flex`).
 
 ### Automation
-*   **One-Command Deploy:** Uses a `Makefile` to simplify Terraform workflows.
-*   **Zero-Touch Install:** Automatically installs Node.js 22 and OpenClaw CLI via `cloud-init`.
+*   **One-Command Deploy:** Uses a `Makefile` to simplify Packer image builds and Terraform workflows.
+*   **Immutable Infrastructure:** Pre-bakes tools (`tmux`, OpenClaw CLI) into a "Golden Image" using HashiCorp Packer for reliable, fast scaling.
+*   **Zero-Touch Provisioning:** Automatically injects the secure Gateway Token via `cloud-init`.
 
 ### Security
 *   **Locked Down SSH:** Restricts SSH access to your specific IP `allowed_ssh_cidr`.
@@ -40,30 +41,54 @@ This repository contains Infrastructure as Code (IaC) using Terraform to deploy 
 
 *\*Azure costs are often covered by Student Credits ($100/yr). Oracle is Always Free.*
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Immutable Infrastructure)
+
+To run this project, you must first build a "Golden Image" (AMI/Custom Image) containing the pre-installed tools using HashiCorp Packer, and then deploy the infrastructure using Terraform.
 
 ### Prerequisites
 1.  **Cloud Account:** Azure Subscription OR Oracle Cloud Account.
-2.  **Terraform:** `brew install terraform`
+2.  **Packer & Terraform:** `brew install hashicorp/tap/packer hashicorp/tap/terraform`
 3.  **SSH Key:** `ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa`
 4.  *(Optional)* **Azure CLI / OCI CLI** for remote state setup.
 5.  *(Optional)* **DevOps Tools:** `brew install tflint tfsec infracost terraform-docs`
 
-### 1. Configure
+### 1. Build the Golden Image (Packer)
+
+**For Azure:**
+```bash
+cd packer/azure
+# Ensure ARM_* environment variables are set (ARM_CLIENT_ID, etc.)
+packer init .
+packer build openclaw.pkr.hcl
+# NOTE: Copy the output image name (e.g., openclaw-ubuntu-arm64-1708535212)
+```
+
+**For Oracle:**
+```bash
+cd packer/oracle
+# Ensure OCI_* environment variables are set
+packer init .
+packer build openclaw.pkr.hcl
+# NOTE: Copy the output image name
+```
+
+### 2. Configure Terraform
 
 #### Option A: Azure (Student)
 ```bash
-cd infra/azure
+cd ../../infra/azure
 cp terraform.tfvars.example terraform.tfvars
 nano terraform.tfvars
-# Set 'allowed_ssh_cidr' to your public IP (e.g., 1.2.3.4/32)
+# Set 'allowed_ssh_cidr' to your public IP
+# Set 'custom_image_name' to the Packer output name from Step 1
 ```
 
 #### Option B: Oracle Cloud (Free Tier)
 ```bash
-cd infra/oracle
+cd ../../infra/oracle
 cp terraform.tfvars.example terraform.tfvars
 nano terraform.tfvars
+# Set 'custom_image_name' to the Packer output name from Step 1
 ```
 **Required Oracle Variables:**
 *   `tenancy_ocid`, `user_ocid`, `fingerprint`, `private_key_path`, `region`, `allowed_ssh_cidr`.
@@ -136,7 +161,8 @@ make token-oracle
 ### Deployment & Access
 | Target | Description |
 |--------|-------------|
-| `deploy-[cloud]` | Deploy entire stack. |
+| `build-[cloud]` | Build the Golden Image using Packer. |
+| `deploy-[cloud]` | Deploy entire stack using Terraform. |
 | `ssh-[cloud]` | SSH into VM. |
 | `destroy-[cloud]` | Destroy resources. |
 | `token-[cloud]` | Reveal the auto-generated `GATEWAY_TOKEN`. |
@@ -164,6 +190,11 @@ openclaw-azure-iac/
 │       ├── backend.tf              # Remote State Config
 │       ├── main.tf                 # VCN, NSG, Compute
 │       └── ...
+├── packer/
+│   ├── azure/                      # Azure Packer template
+│   │   └── openclaw.pkr.hcl
+│   └── oracle/                     # Oracle Packer template
+│       └── openclaw.pkr.hcl
 └── README.md                       # This file
 ```
 

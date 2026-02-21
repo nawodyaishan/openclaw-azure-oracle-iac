@@ -114,9 +114,10 @@ resource "random_password" "gateway_token" {
 # Compute (Always Free Ampere A1)
 # -------------------------------------------------------------------------
 
-# Get the latest Ubuntu 22.04 Minimal Aarch64 image
-data "oci_core_images" "ubuntu_arm" {
+# Get the custom Golden Image built by Packer
+data "oci_core_images" "custom_image" {
   compartment_id           = var.compartment_ocid
+  display_name             = var.custom_image_name
   operating_system         = "Canonical Ubuntu"
   operating_system_version = "22.04"
   shape                    = "VM.Standard.A1.Flex"
@@ -141,7 +142,7 @@ resource "oci_core_instance" "main" {
 
   source_details {
     source_type             = "image"
-    source_id               = data.oci_core_images.ubuntu_arm.images[0].id
+    source_id               = data.oci_core_images.custom_image.images[0].id
     boot_volume_size_in_gbs = 50
   }
 

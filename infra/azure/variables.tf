@@ -66,3 +66,15 @@ variable "allowed_ssh_cidr" {
   type        = string
   default     = "0.0.0.0/0" # Default is open, but user should override this
 }
+
+variable "custom_image_name" {
+  description = "Name of the custom golden image built by Packer"
+  type        = string
+  default     = "openclaw-ubuntu-arm64-latest" # You should override this with the actual build name
+}
+
+variable "custom_image_resource_group" {
+  description = "Resource group where the custom image is stored"
+  type        = string
+  default     = "openclaw-packer-rg"
+}

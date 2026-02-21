@@ -113,6 +113,12 @@ resource "random_password" "gateway_token" {
   special = false
 }
 
+# Fetch the custom image built by Packer
+data "azurerm_image" "custom" {
+  name                = var.custom_image_name
+  resource_group_name = var.custom_image_resource_group
+}
+
 # Virtual Machine - ARM64 B2pts_v2 (Azure for Students free tier eligible)
 resource "azurerm_linux_virtual_machine" "main" {
   name                = var.vm_name
@@ -136,13 +142,9 @@ resource "azurerm_linux_virtual_machine" "main" {
     disk_size_gb         = var.disk_size_gb
   }
 
-  # Ubuntu 22.04 LTS ARM64
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts-arm64"
-    version   = "latest"
-  }
+  # Use the custom Golden Image
+  source_image_id = data.azurerm_image.custom.id
+
 
   custom_data = base64encode(templatefile("${path.module}/cloud-init.tftpl", {
     gateway_token = random_password.gateway_token.result

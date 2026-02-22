@@ -12,6 +12,7 @@ This repository contains Infrastructure as Code (IaC) using Terraform to deploy 
 
 ### Automation
 *   **One-Command Deploy:** Uses a `Makefile` to simplify Packer image builds and Terraform workflows.
+*   **Upcoming TUI Deployer:** A Go-based Terminal User Interface is roadmapped to wrap these workflows for an interactive, wizard-like deployment experience.
 *   **Immutable Infrastructure:** Pre-bakes tools (`tmux`, OpenClaw CLI) into a "Golden Image" using HashiCorp Packer for reliable, fast scaling.
 *   **Zero-Touch Provisioning:** Automatically injects the secure Gateway Token via `cloud-init`.
 

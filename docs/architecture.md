@@ -21,6 +21,7 @@ This document provides a comprehensive overview of the OpenClaw Multi-Cloud Infr
 2.  **Zero-Touch Provisioning (ZTP):** Cloud provider-specific user data scripts (`cloud-init`) are used strictly for environment hydration—specifically, injecting the secure `GATEWAY_TOKEN` into the OS environment upon boot.
 3.  **Principle of Least Privilege:** SSH access is tightly controlled via user-defined CIDR blocks (`allowed_ssh_cidr`). On Oracle, this is enforced via precise Network Security Groups (NSGs).
 4.  **State Management:** Remote state backends are highly encouraged (Azure Storage Accounts or OCI Object Storage) to ensure state file consistency across teams and prevent local data loss.
+5.  **Interactive Automation (Upcoming):** A Go-based TUI (`docs/tui_deployer_spec.md`) is designed to wrap the underlying Make targets, simplifying variable injection and cloud authentication for end users without altering the native IaC logic.
 
 ---
 
@@ -55,7 +56,7 @@ A unified command-line interface wrapping complex Packer and Terraform commands 
 
 ## 🆓 Guide: Full Free Oracle Deployment
 
-Oracle Cloud Infrastructure (OCI) offers an incredibly generous "Always Free" tier, including up to 4 ARM-based Ampere A1 Compute instances with 24GB of RAM. The OpenClaw IaC is purpose-built to fit entirely within this free tier.
+Oracle Cloud Infrastructure (OCI) offers an incredibly generous "Always Free" tier, including up to 4 ARM-based Ampere A1 Compute instances with 24GB of RAM. The OpenClaw IaC is purpose-built to deploy exclusively on the `VM.Standard.A1.Flex` shape, automatically allocating the maximum 4 OCPUs and 24GB RAM to ensure optimal performance for the OpenClaw container daemon.
 
 **Note:** Depending on region demand, Oracle's free ARM instances can experience "Out of Host Capacity" errors. If you encounter this, retry the deployment later.
 

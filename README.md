@@ -60,12 +60,12 @@ To run this project, you must first build a "Golden Image" (AMI/Custom Image) co
 
 ### 1. Build the Golden Image (Packer)
 
+Run these commands from the **root** of the repository:
+
 **For Azure:**
 ```bash
-cd packer/azure
-# Ensure ARM_* environment variables are set (ARM_CLIENT_ID, etc.)
-packer init .
-packer build openclaw.pkr.hcl
+# Ensure ARM_* environment variables are exported (ARM_CLIENT_ID, etc.)
+make build-azure
 # NOTE: Copy the output image name (e.g., openclaw-ubuntu-arm64-1708535212)
 ```
 
@@ -77,12 +77,14 @@ Copy the example file and fill in your infrastructure OCIDs:
 cd packer/oracle
 cp oracle.auto.pkrvars.hcl.example oracle.auto.pkrvars.hcl
 nano oracle.auto.pkrvars.hcl
+cd ../..
 ```
 *(Make sure your `~/.oci/config` is correctly formatted in INI as shown in the next section).*
 
-To build using the Makefile wrapper:
+To build using the Makefile wrapper, run from the root directory:
 ```bash
 make build-oracle
+# NOTE: Copy the output image name (e.g., openclaw-ubuntu-arm64-1708535212)
 ```
 
 ### 2. Configure Terraform
@@ -94,6 +96,7 @@ cp terraform.tfvars.example terraform.tfvars
 nano terraform.tfvars
 # Set 'allowed_ssh_cidr' to your public IP
 # Set 'custom_image_name' to the Packer output name from Step 1
+cd ../../..
 ```
 
 #### Option B: Oracle Cloud (Free Tier)
@@ -101,6 +104,9 @@ nano terraform.tfvars
 cd environments/dev/oracle
 cp terraform.tfvars.example terraform.tfvars
 nano terraform.tfvars
+# Set 'allowed_ssh_cidr' to your public IP
+# Set 'custom_image_name' to the Packer output name from Step 1
+cd ../../..
 ```
 
 **1. Required Oracle Authentication (Native Profile):**

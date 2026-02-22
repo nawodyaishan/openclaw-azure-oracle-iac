@@ -41,3 +41,21 @@ variable "tags" {
     managed_by = "terraform"
   }
 }
+
+variable "vm_shape" {
+  description = "The shape of an instance (e.g., VM.Standard.E2.1.Micro or VM.Standard.A1.Flex)"
+  type        = string
+  default     = "VM.Standard.A1.Flex"
+}
+
+variable "ocpus" {
+  description = "Number of OCPUs for flexible shapes"
+  type        = number
+  default     = 4
+}
+
+variable "memory_in_gbs" {
+  description = "Amount of Memory in GBs for flexible shapes"
+  type        = number
+  default     = 24
+}

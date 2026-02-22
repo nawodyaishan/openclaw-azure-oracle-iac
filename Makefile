@@ -151,16 +151,16 @@ validate-oracle: ## Validate Oracle configuration
 	@echo "Validating Oracle..."
 	@cd $(ORACLE_DIR) && terraform validate
 
-plan-oracle: validate-oracle ## Preview Oracle changes
-	@echo "Planning Oracle deployment..."
+plan-oracle: validate-oracle ## Preview Oracle changes (ARM A1.Flex Shape)
+	@echo "Planning Oracle deployment (VM.Standard.A1.Flex)..."
 	@cd $(ORACLE_DIR) && terraform plan -out=$(TF_PLAN)
 
-build-oracle: ## Build custom Golden Image for Oracle using Packer
-	@echo "Building Oracle Image with Packer..."
+build-oracle: ## Build custom Golden Image for Oracle using Packer (ARM A1.Flex Shape)
+	@echo "Building Oracle Image (ARM64) with Packer..."
 	@cd packer/oracle && packer init . && packer build -var-file=oracle.auto.pkrvars.hcl openclaw.pkr.hcl
 
-deploy-oracle: plan-oracle ## Deploy to Oracle Cloud
-	@echo "Deploying to Oracle Cloud..."
+deploy-oracle: plan-oracle ## Deploy to Oracle Cloud (ARM A1.Flex Shape)
+	@echo "Deploying to Oracle Cloud (VM.Standard.A1.Flex)..."
 	@cd $(ORACLE_DIR) && terraform apply $(TF_PLAN)
 	@rm $(ORACLE_DIR)/$(TF_PLAN)
 

@@ -137,7 +137,12 @@ resource "oci_core_instance" "this" {
   availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name
   compartment_id      = var.compartment_ocid
   display_name        = "openclaw-vm"
-  shape               = "VM.Standard.E2.1.Micro"
+  shape               = var.vm_shape
+
+  shape_config {
+    ocpus         = var.ocpus
+    memory_in_gbs = var.memory_in_gbs
+  }
 
   source_details {
     source_type             = "image"

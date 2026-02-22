@@ -90,8 +90,16 @@ cp terraform.tfvars.example terraform.tfvars
 nano terraform.tfvars
 # Set 'custom_image_name' to the Packer output name from Step 1
 ```
-**Required Oracle Variables:**
-*   `tenancy_ocid`, `user_ocid`, `fingerprint`, `private_key_path`, `region`, `allowed_ssh_cidr`.
+**Required Oracle Authentication (Native Profile):**
+Create an OCI INI profile at `~/.oci/config`. Do **not** hardcode credentials into the tfvars file.
+```ini
+[DEFAULT]
+user=ocid1.user.oc1..xxxx
+fingerprint=05:ee:b8:b0...
+key_file=~/Documents/DevOps/OCI/key.pem
+tenancy=ocid1.tenancy.oc1..xxxx
+region=us-ashburn-1
+```
 
 ### 2. Setup Remote State (Recommended)
 Store your infrastructure state in the cloud to prevent data loss.

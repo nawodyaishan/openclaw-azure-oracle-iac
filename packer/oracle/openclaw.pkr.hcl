@@ -7,30 +7,11 @@ packer {
   }
 }
 
-variable "tenancy_ocid" {
-  type    = string
-  default = "${env("OCI_TENANCY_OCID")}"
-}
-
-variable "user_ocid" {
-  type    = string
-  default = "${env("OCI_USER_OCID")}"
-}
-
-variable "fingerprint" {
-  type    = string
-  default = "${env("OCI_FINGERPRINT")}"
-}
-
-variable "key_file" {
-  type    = string
-  default = "${env("OCI_KEY_FILE")}"
-}
-
-variable "region" {
-  type    = string
-  default = "${env("OCI_REGION")}"
-}
+# -----------------------------------------------------------------------------
+# Infrastructure Variables
+# Note: OCI Authentication (tenancy, user, fingerprint, key_file, region) 
+# is automatically read from the ~/.oci/config profile securely.
+# -----------------------------------------------------------------------------
 
 variable "compartment_ocid" {
   type    = string
@@ -48,33 +29,31 @@ variable "availability_domain" {
   default = "${env("OCI_AVAILABILITY_DOMAIN")}"
 }
 
-source "oracle-oci" "ubuntu_arm64" {
-  tenancy_ocid     = var.tenancy_ocid
-  user_ocid        = var.user_ocid
-  fingerprint      = var.fingerprint
-  key_file         = var.key_file
-  region           = var.region
-  compartment_ocid = var.compartment_ocid
+# -----------------------------------------------------------------------------
+# Builder
+# -----------------------------------------------------------------------------
 
+source "oracle-oci" "ubuntu_arm64" {
+  compartment_ocid    = var.compartment_ocid
   availability_domain = var.availability_domain
   subnet_ocid         = var.subnet_ocid
 
-  # Ubuntu 22.04 ARM64
+  # Ubuntu 22.04 x86_64
   base_image_filter {
     compartment_id = var.compartment_ocid
     operating_system = "Canonical Ubuntu"
     operating_system_version = "22.04"
   }
 
-  shape = "VM.Standard.A1.Flex"
-  shape_config {
-    ocpus         = 1
-    memory_in_gbs = 6
-  }
+  shape = "VM.Standard.E2.1.Micro"
 
-  image_name      = "openclaw-ubuntu-arm64-{{timestamp}}"
+  image_name      = "openclaw-ubuntu-x86_64-{{timestamp}}"
   ssh_username    = "ubuntu"
 }
+
+# -----------------------------------------------------------------------------
+# Provisioners
+# -----------------------------------------------------------------------------
 
 build {
   sources = ["source.oracle-oci.ubuntu_arm64"]

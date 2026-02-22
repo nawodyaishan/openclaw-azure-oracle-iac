@@ -68,29 +68,36 @@ cd openclaw-azure-iac
 cp infra/oracle/terraform.tfvars.example infra/oracle/terraform.tfvars
 ```
 
-### Step 3: Populate Variables
-Open `infra/oracle/terraform.tfvars` and fill in the values you copied from Step 1:
-*   `tenancy_ocid`, `user_ocid`, `fingerprint`, `region`
-*   `private_key_path`: Typically `~/.oci/your-key-name.pem`
+### Step 3: Populate Infrastructure Variables
+Open `infra/oracle/terraform.tfvars` and fill in the pure infrastructure variables:
 *   `compartment_ocid`: For free tier, this is usually the same as your `tenancy_ocid`.
 *   `allowed_ssh_cidr`: Find your public IP (`curl ifconfig.me`) and append `/32` (e.g., `203.0.113.1/32`).
 
-### Step 4: Export Packer Variables
-Packer on OCI currently requires environment variables or a direct `~/.oci/config` file. To securely pass the variables you just defined:
-```bash
-export OCI_TENANCY_OCID="your_tenancy_ocid"
-export OCI_USER_OCID="your_user_ocid"
-export OCI_FINGERPRINT="your_fingerprint"
-export OCI_KEY_FILE="~/.oci/your-key.pem"
-export OCI_REGION="your_region"
-export OCI_COMPARTMENT_OCID="your_compartment_ocid"
+### Step 4: Configure the ~/.oci/config INI file
+This project relies on **Provider-Native Authentication Profiles** to explicitly avoid hardcoding secrets in `.tfvars` files or Makefiles. 
 
-# You also need to specify target Availability Domain and Subnet to run the temporary build VM.
-# Get these IDs from your OCI console (Networking -> VCNs).
+1. Create an OCI API key in your Oracle Cloud User Profile.
+2. Store the private `.pem` key securely in your local filesystem.
+3. Create your OCI profile at `~/.oci/config` containing your explicit credentials in standard INI format:
+
+```ini
+[DEFAULT]
+user=ocid1.user.oc1..xxxx
+fingerprint=05:ee:b8:b0...
+key_file=~/Documents/DevOps/OCI/key.pem
+tenancy=ocid1.tenancy.oc1..xxxx
+region=us-ashburn-1
+```
+
+> [!IMPORTANT]
+> Both Terraform and Packer will automatically load credentials from this file.
+
+To pass the runtime variables missing from the config to the Packer builder, export:
+```bash
+export OCI_COMPARTMENT_OCID="your_compartment_ocid"
 export OCI_SUBNET_OCID="your_existing_subnet_id" 
 export OCI_AVAILABILITY_DOMAIN="your_ad_name" 
 ```
-*(Alternatively, configure the `~/.oci/config` profile standard).*
 
 ### Step 5: Build the Golden Image
 Run the make target to begin baking the image. This process spins up a temporary VM, installs the OpenClaw CLI, saves the image, and terminates the temporary VM.

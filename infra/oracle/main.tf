@@ -120,7 +120,7 @@ data "oci_core_images" "custom_image" {
   display_name             = var.custom_image_name
   operating_system         = "Canonical Ubuntu"
   operating_system_version = "22.04"
-  shape                    = "VM.Standard.A1.Flex"
+  shape                    = "VM.Standard.E2.1.Micro"
   sort_by                  = "TIMECREATED"
   sort_order               = "DESC"
 }
@@ -133,12 +133,7 @@ resource "oci_core_instance" "main" {
   availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name
   compartment_id      = var.compartment_ocid
   display_name        = "openclaw-vm"
-  shape               = "VM.Standard.A1.Flex"
-
-  shape_config {
-    ocpus         = 4
-    memory_in_gbs = 24
-  }
+  shape               = "VM.Standard.E2.1.Micro"
 
   source_details {
     source_type             = "image"
@@ -153,7 +148,6 @@ resource "oci_core_instance" "main" {
   }
 
   metadata = {
-    ssh_authorized_keys = file(var.ssh_public_key_path)
     user_data = base64encode(templatefile("${path.module}/cloud-init.tftpl", {
       gateway_token = random_password.gateway_token.result
     }))

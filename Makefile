@@ -8,7 +8,7 @@ TF_PLAN := tfplan
 
 # Ensure Cloud Credentials are automatically passed down to subshells
 export ARM_CLIENT_ID ARM_CLIENT_SECRET ARM_SUBSCRIPTION_ID ARM_TENANT_ID
-export OCI_TENANCY_OCID OCI_USER_OCID OCI_FINGERPRINT OCI_KEY_FILE OCI_REGION OCI_COMPARTMENT_OCID OCI_SUBNET_OCID OCI_AVAILABILITY_DOMAIN
+export OCI_COMPARTMENT_OCID OCI_SUBNET_OCID OCI_AVAILABILITY_DOMAIN
 
 .PHONY: help init-azure init-oracle validate-azure validate-oracle plan-azure plan-oracle deploy-azure deploy-oracle destroy-azure destroy-oracle ssh-azure ssh-oracle token-azure token-oracle build-azure build-oracle
 
@@ -156,14 +156,9 @@ build-oracle: ## Build custom Golden Image for Oracle using Packer
 	@echo "Building Oracle Image with Packer..."
 	@cd packer/oracle && packer init . && \
 	packer build \
-		-var "tenancy_ocid=$(OCI_TENANCY_OCID)" \
-		-var "user_ocid=$(OCI_USER_OCID)" \
-		-var "fingerprint=$(OCI_FINGERPRINT)" \
-		-var "key_file=$(OCI_KEY_FILE)" \
-		-var "region=$(OCI_REGION)" \
-		-var "compartment_ocid=$(OCI_COMPARTMENT_OCID)" \
-		-var "subnet_ocid=$(OCI_SUBNET_OCID)" \
-		-var "availability_domain=$(OCI_AVAILABILITY_DOMAIN)" \
+		-var "compartment_ocid=$${OCI_COMPARTMENT_OCID}" \
+		-var "subnet_ocid=$${OCI_SUBNET_OCID}" \
+		-var "availability_domain=$${OCI_AVAILABILITY_DOMAIN}" \
 		openclaw.pkr.hcl
 
 deploy-oracle: plan-oracle ## Deploy to Oracle Cloud

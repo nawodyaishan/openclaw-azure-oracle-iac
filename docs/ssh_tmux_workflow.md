@@ -132,7 +132,7 @@ During the migration to our zero-secret infrastructure model, we encountered a c
 ### The Infrastructure Fix
 To fix this without regressing our security posture (no private keys in codebase), we updated the Terraform deployment to dynamically read the local public key string and inject it into the VM during the `cloud-init` bootstrapping phase.
 
-**1. `infra/oracle/variables.tf`**
+**1. `environments/dev/oracle/variables.tf` and `modules/oracle-openclaw/variables.tf`**
 We re-introduced the variable tracking the location of the *public* key on your local filesystem: 
 ```hcl
 variable "ssh_public_key_path" {
@@ -142,13 +142,13 @@ variable "ssh_public_key_path" {
 }
 ```
 
-**2. `infra/oracle/terraform.tfvars`**
+**2. `environments/dev/oracle/terraform.tfvars`**
 We explicitly declared this mapping so engineers can clearly see where their key is sourced from:
 ```hcl
 ssh_public_key_path = "~/.ssh/id_rsa.pub"
 ```
 
-**3. `infra/oracle/main.tf`**
+**3. `modules/oracle-openclaw/main.tf`**
 We updated the core compute instance block to natively read the *string contents* of that public key file using Terraform's `file()` function, and mapped it into the `ssh_authorized_keys` metadata block alongside our Gateway Token injection.
 ```hcl
   metadata = {

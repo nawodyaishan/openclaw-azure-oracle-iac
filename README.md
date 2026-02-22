@@ -83,7 +83,7 @@ make build-oracle
 
 #### Option A: Azure (Student)
 ```bash
-cd ../../infra/azure
+cd environments/dev/azure
 cp terraform.tfvars.example terraform.tfvars
 nano terraform.tfvars
 # Set 'allowed_ssh_cidr' to your public IP
@@ -92,9 +92,7 @@ nano terraform.tfvars
 
 #### Option B: Oracle Cloud (Free Tier)
 ```bash
-cd ../../infra/oracle
-```bash
-cd ../../infra/oracle
+cd environments/dev/oracle
 cp terraform.tfvars.example terraform.tfvars
 nano terraform.tfvars
 ```
@@ -131,7 +129,7 @@ make setup-state-oracle # Shows instructions for OCI Object Storage
 make init-oracle        # Initializes with remote backend
 ```
 
-*(You can skip this to use local state, but backing up `infra/` is critical).*
+*(You can skip this to use local state, but backing up `environments/` is critical).*
 
 ### 3. Deploy
 
@@ -206,20 +204,16 @@ make token-oracle
 ```
 openclaw-azure-iac/
 ├── Makefile                        # Multi-cloud commands
-├── infra/
-│   ├── azure/                      # Azure Terraform config
-│   │   ├── backend.tf              # Remote State Config
-│   │   ├── main.tf                 # VM, Networking, Backups
-│   │   └── ...
-│   └── oracle/                     # Oracle Terraform config
-│       ├── backend.tf              # Remote State Config
-│       ├── main.tf                 # VCN, NSG, Compute
-│       └── ...
-├── packer/
+├── environments/                   # Instantiated infrastructure environments
+│   └── dev/
+│       ├── azure/                  # Dev environment for Azure
+│       └── oracle/                 # Dev environment for Oracle
+├── modules/                        # Reusable Terraform logic
+│   ├── azure-openclaw/             # Core Azure configurations
+│   └── oracle-openclaw/            # Core Oracle configurations
+├── packer/                         # Immutable server configurations
 │   ├── azure/                      # Azure Packer template
-│   │   └── openclaw.pkr.hcl
 │   └── oracle/                     # Oracle Packer template
-│       └── openclaw.pkr.hcl
 └── README.md                       # This file
 ```
 
@@ -239,7 +233,7 @@ openclaw-azure-iac/
 **Cause:** Your IP address changed or `allowed_ssh_cidr` is incorrect.
 **Solution:**
 1.  Check your IP: `curl ifconfig.me`
-2.  Update `infra/[cloud]/terraform.tfvars`.
+2.  Update `environments/dev/[cloud]/terraform.tfvars`.
 3.  Run `make deploy-[cloud]` to update the Security Group rules.
 
 ## License

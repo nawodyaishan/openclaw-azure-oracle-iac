@@ -33,15 +33,22 @@ Contains the declarative configurations for building Golden Images.
 *  `packer/azure/openclaw.pkr.hcl`: Uses the `azure-arm` builder to create Azure Managed Images.
 *  `packer/oracle/openclaw.pkr.hcl`: Uses the `oracle-oci` builder to create Custom OCI Images.
 
-### 2. `infra/[cloud]/` (Provisioning Layer)
-Contains the Terraform manifests for declaring cloud resources.
-*   `main.tf`: The primary declaration file. Responsible for Network (VNet/VCN, Subnets), Security (NSGs, Security Rules), Compute (Virtual Machines), and dynamic Image Data Sources fetching the Packer-built image.
-*   `variables.tf`: Input variable definitions to make the modules reusable and customizable.
+### 2. `environments/dev/[cloud]/` (Provisioning Layer)
+Contains the instantiated Terraform environments.
+*   `main.tf`: Instantiates the reusable modules from `modules/[cloud]-openclaw/`.
+*   `variables.tf`: Input variable definitions for the environment.
+*   `terraform.tfvars`: User-specific environment variable values.
 *   `outputs.tf`: Important output values generated after deployment, such as the Public IP address and the generated `GATEWAY_TOKEN`.
 *   `backend.tf.example`: A template for configuring remote state storage.
-*   `cloud-init.tftpl`: The user-data template parsed by Terraform to inject the token.
 
-### 3. `Makefile` (Operations Interface)
+### 3. `modules/[cloud]-openclaw/` (Reusable Logic)
+Contains the core Terraform resource logic.
+*   `main.tf`: Responsible for Network (VNet/VCN, Subnets), Security, Compute, and dynamic Image Data Sources.
+*   `versions.tf`: Defines strict provider and Terraform version dependencies.
+*   `cloud-init.tftpl`: The user-data template parsed by Terraform to inject the token.
+*   `README.md`: Auto-generated module documentation via `terraform-docs`.
+
+### 4. `Makefile` (Operations Interface)
 A unified command-line interface wrapping complex Packer and Terraform commands into simple phonetic targets like `make build-[cloud]` and `make deploy-[cloud]`.
 
 ---
@@ -65,11 +72,11 @@ Clone the repository and prepare the Oracle configuration:
 git clone https://github.com/nawodyaishan/openclaw-azure-iac.git
 cd openclaw-azure-iac
 
-cp infra/oracle/terraform.tfvars.example infra/oracle/terraform.tfvars
+cp environments/dev/oracle/terraform.tfvars.example environments/dev/oracle/terraform.tfvars
 ```
 
 ### Step 3: Populate Infrastructure Variables
-Open `infra/oracle/terraform.tfvars` and fill in the pure infrastructure variables:
+Open `environments/dev/oracle/terraform.tfvars` and fill in the pure infrastructure variables:
 *   `compartment_ocid`: For free tier, this is usually the same as your `tenancy_ocid`.
 *   `allowed_ssh_cidr`: Find your public IP (`curl ifconfig.me`) and append `/32` (e.g., `203.0.113.1/32`).
 
@@ -106,7 +113,7 @@ make build-oracle
 ```
 **Important:** When the build finishes, it will output the new Image Name (e.g., `openclaw-ubuntu-arm64-1708535212`). Copy this name!
 
-Edit `infra/oracle/terraform.tfvars` again and set:
+Edit `environments/dev/oracle/terraform.tfvars` again and set:
 ```hcl
 custom_image_name = "openclaw-ubuntu-arm64-1708535212"
 ```

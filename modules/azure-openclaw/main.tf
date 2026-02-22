@@ -108,7 +108,7 @@ resource "azurerm_network_interface_security_group_association" "this" {
 # Security (Token Generation)
 # -------------------------------------------------------------------------
 
-resource "random_password" "gateway_token" {
+resource "random_password" "this" {
   length  = 32
   special = false
 }
@@ -147,7 +147,7 @@ resource "azurerm_linux_virtual_machine" "this" {
 
 
   custom_data = base64encode(templatefile("${path.module}/cloud-init.tftpl", {
-    gateway_token = random_password.gateway_token.result
+    gateway_token = random_password.this.result
   }))
 
   tags = merge(var.tags, {

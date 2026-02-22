@@ -21,16 +21,17 @@ resource "oci_core_route_table" "this" {
   compartment_id = var.compartment_ocid
   vcn_id         = oci_core_vcn.this.id
   display_name   = "openclaw-rt"
-  freeform_tags  = var.tags
 
   route_rules {
     destination       = "0.0.0.0/0"
     destination_type  = "CIDR_BLOCK"
     network_entity_id = oci_core_internet_gateway.this.id
   }
+
+  freeform_tags  = var.tags
 }
 
-resource "oci_core_subnet" "public" {
+resource "oci_core_subnet" "this" {
   cidr_block        = "10.0.1.0/24"
   compartment_id    = var.compartment_ocid
   vcn_id            = oci_core_vcn.this.id
@@ -38,6 +39,7 @@ resource "oci_core_subnet" "public" {
   dns_label         = "public"
   security_list_ids = [oci_core_vcn.this.default_security_list_id] # Default allows strict ingress, we use NSG
   route_table_id    = oci_core_route_table.this.id
+
   freeform_tags     = var.tags
 }
 
@@ -110,7 +112,7 @@ resource "oci_core_network_security_group_security_rule" "egress_all" {
 # Security (Token Generation)
 # -------------------------------------------------------------------------
 
-resource "random_password" "gateway_token" {
+resource "random_password" "this" {
   length  = 32
   special = false
 }
@@ -136,7 +138,6 @@ resource "oci_core_instance" "this" {
   compartment_id      = var.compartment_ocid
   display_name        = "openclaw-vm"
   shape               = "VM.Standard.E2.1.Micro"
-  freeform_tags       = var.tags
 
   source_details {
     source_type             = "image"
@@ -145,7 +146,7 @@ resource "oci_core_instance" "this" {
   }
 
   create_vnic_details {
-    subnet_id        = oci_core_subnet.public.id
+    subnet_id        = oci_core_subnet.this.id
     nsg_ids          = [oci_core_network_security_group.this.id]
     assign_public_ip = true
   }
@@ -153,9 +154,11 @@ resource "oci_core_instance" "this" {
   metadata = {
     ssh_authorized_keys = file(var.ssh_public_key_path)
     user_data = base64encode(templatefile("${path.module}/cloud-init.tftpl", {
-      gateway_token = random_password.gateway_token.result
+      gateway_token = random_password.this.result
     }))
   }
+
+  freeform_tags = var.tags
 
   # Ensure NSG rules exist before creating instance (soft dependency)
   depends_on = [

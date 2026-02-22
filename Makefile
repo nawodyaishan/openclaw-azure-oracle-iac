@@ -42,10 +42,10 @@ cost: ## Estimate costs (infracost)
 docs: ## Generate Documentation (terraform-docs)
 	@echo "Generating docs..."
 	@if command -v terraform-docs >/dev/null; then \
-		terraform-docs markdown table $(AZURE_DIR) > $(AZURE_DIR)/README.md; \
-		terraform-docs markdown table $(ORACLE_DIR) > $(ORACLE_DIR)/README.md; \
-		echo "✅ Updated $(AZURE_DIR)/README.md"; \
-		echo "✅ Updated $(ORACLE_DIR)/README.md"; \
+		terraform-docs markdown table modules/azure-openclaw > modules/azure-openclaw/README.md; \
+		terraform-docs markdown table modules/oracle-openclaw > modules/oracle-openclaw/README.md; \
+		echo "✅ Updated modules/azure-openclaw/README.md"; \
+		echo "✅ Updated modules/oracle-openclaw/README.md"; \
 	else \
 		echo "⚠️ terraform-docs not installed. 'brew install terraform-docs'"; \
 	fi
@@ -65,7 +65,7 @@ setup-state-azure: ## Create Azure Storage Account for Remote State
 	echo "storage_account_name = \"$$SA_NAME\"" >> $(AZURE_DIR)/backend.conf; \
 	echo "container_name       = \"tfstate\"" >> $(AZURE_DIR)/backend.conf; \
 	echo "key                  = \"terraform.tfstate\"" >> $(AZURE_DIR)/backend.conf; \
-	cp $(AZURE_DIR)/backend.tf.example $(AZURE_DIR)/backend.tf; \
+	echo 'terraform { backend "azurerm" {} }' > $(AZURE_DIR)/backend.tf; \
 	echo "✅ Azure Remote State setup complete. Configuration saved to $(AZURE_DIR)/backend.conf and backend.tf enabled."
 
 init-azure: ## Initialize Terraform for Azure (Auto-detects Local/Remote)
@@ -122,7 +122,7 @@ setup-state-oracle: ## Guide for Oracle Remote State setup
 	@echo "Oracle Remote State Setup Instructions:"
 	@echo "1. Create an Object Storage Bucket named 'tfstate' in your OCI Console."
 	@echo "2. Generate 'Customer Secret Keys' (S3 Compatible) for your user in OCI Console."
-	@echo "3. Copy example backend: cp $(ORACLE_DIR)/backend.tf.example $(ORACLE_DIR)/backend.tf"
+	@echo "3. Run this command to initialize backend config: echo 'terraform { backend \"s3\" {} }' > $(ORACLE_DIR)/backend.tf"
 	@echo "4. Create a file '$(ORACLE_DIR)/backend.conf' with the following content:"
 	@echo "   bucket   = \"tfstate\""
 	@echo "   key      = \"terraform.tfstate\""
@@ -130,6 +130,10 @@ setup-state-oracle: ## Guide for Oracle Remote State setup
 	@echo "   endpoint = \"https://{namespace}.compat.objectstorage.{region}.oraclecloud.com\""
 	@echo "   access_key = \"YOUR_ACCESS_KEY\""
 	@echo "   secret_key = \"YOUR_SECRET_KEY\""
+	@echo "   skip_region_validation      = true"
+	@echo "   skip_credentials_validation = true"
+	@echo "   skip_metadata_api_check     = true"
+	@echo "   force_path_style            = true"
 	@echo ""
 	@echo "💡 Use 'oci os ns get' to find your namespace."
 

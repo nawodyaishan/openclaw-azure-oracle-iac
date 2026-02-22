@@ -30,6 +30,6 @@ output "ssh_connection" {
 
 output "gateway_token" {
   description = "Auto-generated OpenClaw Gateway Token (Secure)"
-  value       = random_password.gateway_token.result
+  value       = random_password.this.result
   sensitive   = true
 }

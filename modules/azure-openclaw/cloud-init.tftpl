@@ -1,0 +1,10 @@
+#cloud-config
+
+runcmd:
+  # Set the secure Gateway Token for OpenClaw
+  - echo "OPENCLAW_GATEWAY_TOKEN=${gateway_token}" >> /etc/environment
+  - echo "export OPENCLAW_GATEWAY_TOKEN=${gateway_token}" >> /home/azureuser/.bashrc
+
+  # Note: 'openclaw configure' must be run manually after SSH login
+  - echo "OpenClaw configuration complete. Token secure."
+  - openclaw --version

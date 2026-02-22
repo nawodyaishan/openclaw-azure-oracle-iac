@@ -1,8 +1,8 @@
 # OpenClaw Multi-Cloud Infrastructure Makefile
 
 # Configuration
-AZURE_DIR := infra/azure
-ORACLE_DIR := infra/oracle
+AZURE_DIR := environments/dev/azure
+ORACLE_DIR := environments/dev/oracle
 SSH_KEY := ~/.ssh/id_rsa
 TF_PLAN := tfplan
 

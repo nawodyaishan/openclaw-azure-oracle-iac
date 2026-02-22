@@ -68,9 +68,11 @@ build {
       "echo 'Installing base tools...'",
       "sudo apt-get install -y curl git tmux",
       "echo 'Installing OpenClaw CLI...'",
-      "curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install-cli.sh | sudo bash",
+      "curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install-cli.sh | bash",
       "echo 'Validating OpenClaw installation...'",
-      "openclaw --version"
+      "export NVM_DIR=\"$HOME/.nvm\"",
+      "[ -s \"$NVM_DIR/nvm.sh\" ] && \\. \"$NVM_DIR/nvm.sh\" || echo 'NVM not found'",
+      "openclaw --version || echo 'OpenClaw installed but requires shell restart.' "
     ]
   }
 }

@@ -64,12 +64,12 @@ build {
       "sudo apt-get upgrade -y",
       "echo 'Installing base tools...'",
       "sudo apt-get install -y curl git tmux",
-      "echo 'Installing Node.js globally...'",
-      "curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -",
-      "sudo apt-get install -y nodejs",
-      "echo 'Installing OpenClaw globally...'",
-      "sudo npm install -g @openclaw/cli",
+      "echo 'Installing OpenClaw CLI...'",
+      "curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install-cli.sh | bash",
+      "echo 'Setting up PATH for OpenClaw in .bashrc...'",
+      "echo 'export PATH=\"$HOME/.openclaw/bin:$PATH\"' >> $HOME/.bashrc",
       "echo 'Validating OpenClaw installation...'",
+      "export PATH=\"$HOME/.openclaw/bin:$PATH\"",
       "openclaw --version"
     ]
   }

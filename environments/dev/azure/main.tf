@@ -1,7 +1,6 @@
 module "openclaw" {
   source = "../../../modules/azure-openclaw"
 
-  subscription_id             = var.subscription_id
   resource_group_name         = var.resource_group_name
   location                    = var.location
   environment                 = var.environment

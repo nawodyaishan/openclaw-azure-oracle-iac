@@ -35,16 +35,20 @@ source "oracle-oci" "ubuntu_arm64" {
   availability_domain = var.availability_domain
   subnet_ocid         = var.subnet_ocid
 
-  # Ubuntu 22.04 x86_64
+  # Ubuntu 22.04 ARM64
   base_image_filter {
     compartment_id = var.compartment_ocid
     operating_system = "Canonical Ubuntu"
     operating_system_version = "22.04"
   }
 
-  shape = "VM.Standard.E2.1.Micro"
+  shape = "VM.Standard.A1.Flex"
+  shape_config {
+    ocpus         = 4
+    memory_in_gbs = 24
+  }
 
-  image_name      = "openclaw-ubuntu-x86_64-{{timestamp}}"
+  image_name      = "openclaw-ubuntu-arm64-{{timestamp}}"
   ssh_username    = "ubuntu"
 }
 
@@ -53,7 +57,9 @@ source "oracle-oci" "ubuntu_arm64" {
 # -----------------------------------------------------------------------------
 
 build {
-  sources = ["source.oracle-oci.ubuntu_arm64"]
+  sources = [
+    "source.oracle-oci.ubuntu_arm64"
+  ]
 
   provisioner "shell" {
     inline = [

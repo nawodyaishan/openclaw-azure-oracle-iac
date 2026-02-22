@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+echo "=== Running Terraform Format & Lint ==="
+make lint || { echo "Linting failed!"; exit 1; }
+
+echo "=== Running Terraform Validation for Azure ==="
+make validate-azure || { echo "Azure validation failed!"; exit 1; }
+
+echo "=== Running Terraform Validation for Oracle ==="
+make validate-oracle || { echo "Oracle validation failed!"; exit 1; }
+
+echo "Validation passed! 🎉"

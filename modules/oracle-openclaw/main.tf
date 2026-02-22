@@ -28,7 +28,7 @@ resource "oci_core_route_table" "this" {
     network_entity_id = oci_core_internet_gateway.this.id
   }
 
-  freeform_tags  = var.tags
+  freeform_tags = var.tags
 }
 
 resource "oci_core_subnet" "this" {
@@ -40,7 +40,7 @@ resource "oci_core_subnet" "this" {
   security_list_ids = [oci_core_vcn.this.default_security_list_id] # Default allows strict ingress, we use NSG
   route_table_id    = oci_core_route_table.this.id
 
-  freeform_tags     = var.tags
+  freeform_tags = var.tags
 }
 
 # -------------------------------------------------------------------------
@@ -137,7 +137,12 @@ resource "oci_core_instance" "this" {
   availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name
   compartment_id      = var.compartment_ocid
   display_name        = "openclaw-vm"
-  shape               = "VM.Standard.E2.1.Micro"
+  shape               = var.vm_shape
+
+  shape_config {
+    ocpus         = var.ocpus
+    memory_in_gbs = var.memory_in_gbs
+  }
 
   source_details {
     source_type             = "image"

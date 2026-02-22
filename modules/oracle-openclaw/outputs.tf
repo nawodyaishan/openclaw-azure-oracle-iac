@@ -8,6 +8,6 @@ output "ssh_connection" {
 }
 
 output "gateway_token" {
-  value     = random_password.gateway_token.result
+  value     = random_password.this.result
   sensitive = true
 }

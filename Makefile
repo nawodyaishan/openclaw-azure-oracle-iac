@@ -1,12 +1,15 @@
 # OpenClaw Multi-Cloud Infrastructure Makefile
 
 # Configuration
-AZURE_DIR := infra/azure
-ORACLE_DIR := infra/oracle
+AZURE_DIR := environments/dev/azure
+ORACLE_DIR := environments/dev/oracle
 SSH_KEY := ~/.ssh/id_rsa
 TF_PLAN := tfplan
 
-.PHONY: help init-azure init-oracle validate-azure validate-oracle plan-azure plan-oracle deploy-azure deploy-oracle destroy-azure destroy-oracle ssh-azure ssh-oracle token-azure token-oracle
+# Ensure Cloud Credentials are automatically passed down to subshells
+export ARM_CLIENT_ID ARM_CLIENT_SECRET ARM_SUBSCRIPTION_ID ARM_TENANT_ID
+
+.PHONY: help init-azure init-oracle validate-azure validate-oracle plan-azure plan-oracle deploy-azure deploy-oracle destroy-azure destroy-oracle ssh-azure ssh-oracle token-azure token-oracle build-azure build-oracle
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -83,6 +86,16 @@ plan-azure: validate-azure ## Preview Azure changes
 	@echo "Planning Azure deployment..."
 	@cd $(AZURE_DIR) && terraform plan -out=$(TF_PLAN)
 
+build-azure: ## Build custom Golden Image for Azure using Packer
+	@echo "Building Azure Image with Packer..."
+	@cd packer/azure && packer init . && \
+	packer build \
+		-var "client_id=$(ARM_CLIENT_ID)" \
+		-var "client_secret=$(ARM_CLIENT_SECRET)" \
+		-var "subscription_id=$(ARM_SUBSCRIPTION_ID)" \
+		-var "tenant_id=$(ARM_TENANT_ID)" \
+		openclaw.pkr.hcl
+
 deploy-azure: plan-azure ## Deploy to Azure
 	@echo "Deploying to Azure..."
 	@cd $(AZURE_DIR) && terraform apply $(TF_PLAN)
@@ -137,6 +150,10 @@ validate-oracle: ## Validate Oracle configuration
 plan-oracle: validate-oracle ## Preview Oracle changes
 	@echo "Planning Oracle deployment..."
 	@cd $(ORACLE_DIR) && terraform plan -out=$(TF_PLAN)
+
+build-oracle: ## Build custom Golden Image for Oracle using Packer
+	@echo "Building Oracle Image with Packer..."
+	@cd packer/oracle && packer init . && packer build -var-file=oracle.auto.pkrvars.hcl openclaw.pkr.hcl
 
 deploy-oracle: plan-oracle ## Deploy to Oracle Cloud
 	@echo "Deploying to Oracle Cloud..."

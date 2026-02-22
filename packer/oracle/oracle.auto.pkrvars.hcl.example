@@ -1,0 +1,11 @@
+# -----------------------------------------------------------------------------
+# Oracle Cloud Infrastructure Configuration for Packer
+# -----------------------------------------------------------------------------
+
+# Note: OCI Authentication (tenancy, user, fingerprint, key_file, region) 
+# is automatically read from the ~/.oci/config profile securely. 
+# Do NOT place secrets in this file.
+
+compartment_ocid    = "YOUR_COMPARTMENT_OCID"
+subnet_ocid         = "YOUR_SUBNET_OCID"
+availability_domain = "YOUR_AVAILABILITY_DOMAIN"

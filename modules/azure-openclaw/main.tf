@@ -1,5 +1,5 @@
 # Resource Group
-resource "azurerm_resource_group" "main" {
+resource "azurerm_resource_group" "this" {
   name     = var.resource_group_name
   location = var.location
 
@@ -9,28 +9,28 @@ resource "azurerm_resource_group" "main" {
 }
 
 # Virtual Network
-resource "azurerm_virtual_network" "main" {
+resource "azurerm_virtual_network" "this" {
   name                = "${var.vm_name}-vnet"
   address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.this.location
+  resource_group_name = azurerm_resource_group.this.name
 
   tags = var.tags
 }
 
 # Subnet
-resource "azurerm_subnet" "main" {
+resource "azurerm_subnet" "this" {
   name                 = "${var.vm_name}-subnet"
-  resource_group_name  = azurerm_resource_group.main.name
-  virtual_network_name = azurerm_virtual_network.main.name
+  resource_group_name  = azurerm_resource_group.this.name
+  virtual_network_name = azurerm_virtual_network.this.name
   address_prefixes     = ["10.0.1.0/24"]
 }
 
 # Public IP
-resource "azurerm_public_ip" "main" {
+resource "azurerm_public_ip" "this" {
   name                = "${var.vm_name}-pip"
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.this.location
+  resource_group_name = azurerm_resource_group.this.name
   allocation_method   = "Static"
   sku                 = "Standard"
 
@@ -38,10 +38,10 @@ resource "azurerm_public_ip" "main" {
 }
 
 # Network Security Group
-resource "azurerm_network_security_group" "main" {
+resource "azurerm_network_security_group" "this" {
   name                = "${var.vm_name}-nsg"
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.this.location
+  resource_group_name = azurerm_resource_group.this.name
 
   security_rule {
     name                       = "SSH"
@@ -83,25 +83,25 @@ resource "azurerm_network_security_group" "main" {
 }
 
 # Network Interface
-resource "azurerm_network_interface" "main" {
+resource "azurerm_network_interface" "this" {
   name                = "${var.vm_name}-nic"
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.this.location
+  resource_group_name = azurerm_resource_group.this.name
 
   ip_configuration {
     name                          = "internal"
-    subnet_id                     = azurerm_subnet.main.id
+    subnet_id                     = azurerm_subnet.this.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.main.id
+    public_ip_address_id          = azurerm_public_ip.this.id
   }
 
   tags = var.tags
 }
 
 # Connect NSG to NIC
-resource "azurerm_network_interface_security_group_association" "main" {
-  network_interface_id      = azurerm_network_interface.main.id
-  network_security_group_id = azurerm_network_security_group.main.id
+resource "azurerm_network_interface_security_group_association" "this" {
+  network_interface_id      = azurerm_network_interface.this.id
+  network_security_group_id = azurerm_network_security_group.this.id
 }
 
 # -------------------------------------------------------------------------
@@ -113,16 +113,22 @@ resource "random_password" "gateway_token" {
   special = false
 }
 
+# Fetch the custom image built by Packer
+data "azurerm_image" "custom" {
+  name                = var.custom_image_name
+  resource_group_name = var.custom_image_resource_group
+}
+
 # Virtual Machine - ARM64 B2pts_v2 (Azure for Students free tier eligible)
-resource "azurerm_linux_virtual_machine" "main" {
+resource "azurerm_linux_virtual_machine" "this" {
   name                = var.vm_name
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.this.name
+  location            = azurerm_resource_group.this.location
   size                = var.vm_size # Standard_B2pts_v2: 2 vCPU, 4GB RAM, ARM64
   admin_username      = var.admin_username
 
   network_interface_ids = [
-    azurerm_network_interface.main.id,
+    azurerm_network_interface.this.id,
   ]
 
   admin_ssh_key {
@@ -136,13 +142,9 @@ resource "azurerm_linux_virtual_machine" "main" {
     disk_size_gb         = var.disk_size_gb
   }
 
-  # Ubuntu 22.04 LTS ARM64
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts-arm64"
-    version   = "latest"
-  }
+  # Use the custom Golden Image
+  source_image_id = data.azurerm_image.custom.id
+
 
   custom_data = base64encode(templatefile("${path.module}/cloud-init.tftpl", {
     gateway_token = random_password.gateway_token.result
@@ -157,10 +159,10 @@ resource "azurerm_linux_virtual_machine" "main" {
 # Automated Backups (Phase 1.2 Sustainable Action Plan)
 # -------------------------------------------------------------------------
 
-resource "azurerm_recovery_services_vault" "main" {
+resource "azurerm_recovery_services_vault" "this" {
   name                = "${var.vm_name}-rsv"
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.this.location
+  resource_group_name = azurerm_resource_group.this.name
   sku                 = "Standard"
 
   soft_delete_enabled = true
@@ -168,10 +170,10 @@ resource "azurerm_recovery_services_vault" "main" {
   tags = var.tags
 }
 
-resource "azurerm_backup_policy_vm" "daily" {
+resource "azurerm_backup_policy_vm" "this" {
   name                = "${var.vm_name}-daily-policy"
-  resource_group_name = azurerm_resource_group.main.name
-  recovery_vault_name = azurerm_recovery_services_vault.main.name
+  resource_group_name = azurerm_resource_group.this.name
+  recovery_vault_name = azurerm_recovery_services_vault.this.name
 
   timezone = "UTC"
 
@@ -190,9 +192,9 @@ resource "azurerm_backup_policy_vm" "daily" {
   }
 }
 
-resource "azurerm_backup_protected_vm" "main" {
-  resource_group_name = azurerm_resource_group.main.name
-  recovery_vault_name = azurerm_recovery_services_vault.main.name
-  source_vm_id        = azurerm_linux_virtual_machine.main.id
-  backup_policy_id    = azurerm_backup_policy_vm.daily.id
+resource "azurerm_backup_protected_vm" "this" {
+  resource_group_name = azurerm_resource_group.this.name
+  recovery_vault_name = azurerm_recovery_services_vault.this.name
+  source_vm_id        = azurerm_linux_virtual_machine.this.id
+  backup_policy_id    = azurerm_backup_policy_vm.this.id
 }

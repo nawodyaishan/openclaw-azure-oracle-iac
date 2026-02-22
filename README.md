@@ -64,12 +64,19 @@ packer build openclaw.pkr.hcl
 ```
 
 **For Oracle:**
+Packer needs to know where to securely boot the temporary compilation VM in your cloud. We provide this configuration declaratively via a variables file.
+
+Copy the example file and fill in your infrastructure OCIDs:
 ```bash
 cd packer/oracle
-# Ensure OCI_* environment variables are set
-packer init .
-packer build openclaw.pkr.hcl
-# NOTE: Copy the output image name
+cp oracle.auto.pkrvars.hcl.example oracle.auto.pkrvars.hcl
+nano oracle.auto.pkrvars.hcl
+```
+*(Make sure your `~/.oci/config` is correctly formatted in INI as shown in the next section).*
+
+To build using the Makefile wrapper:
+```bash
+make build-oracle
 ```
 
 ### 2. Configure Terraform
@@ -86,12 +93,14 @@ nano terraform.tfvars
 #### Option B: Oracle Cloud (Free Tier)
 ```bash
 cd ../../infra/oracle
+```bash
+cd ../../infra/oracle
 cp terraform.tfvars.example terraform.tfvars
 nano terraform.tfvars
-# Set 'custom_image_name' to the Packer output name from Step 1
 ```
-**Required Oracle Authentication (Native Profile):**
-Create an OCI INI profile at `~/.oci/config`. Do **not** hardcode credentials into the tfvars file.
+
+**1. Required Oracle Authentication (Native Profile):**
+Create an OCI INI profile at `~/.oci/config`. Do **not** hardcode credentials into the `terraform.tfvars` file. Both Packer and Terraform natively read this file!
 ```ini
 [DEFAULT]
 user=ocid1.user.oc1..xxxx
@@ -100,6 +109,11 @@ key_file=~/Documents/DevOps/OCI/key.pem
 tenancy=ocid1.tenancy.oc1..xxxx
 region=us-ashburn-1
 ```
+
+**2. Required Infrastructure Configuration (`terraform.tfvars`):**
+*   `compartment_ocid`: The OCID where resources will be deployed.
+*   `allowed_ssh_cidr`: The exact IP address allowed to SSH in (e.g., `203.0.113.1/32`).
+*   `custom_image_name`: The exact image name outputted by the Packer build step.
 
 ### 2. Setup Remote State (Recommended)
 Store your infrastructure state in the cloud to prevent data loss.
@@ -144,6 +158,9 @@ make ssh-azure   # Connects as 'azureuser'
 # OR
 make ssh-oracle  # Connects as 'ubuntu'
 ```
+
+> [!TIP]
+> **Highly Recommended Workflow:** Check out our [Universal SSH & Tmux Master Guide](file:///Users/nawodyaishan/Documents/GitHub/openclaw-azure-iac/docs/ssh_tmux_workflow.md) to learn how to keep your processes running flawlessly even if your WiFi drops!
 
 **Configure:**
 Inside the VM (works for both):

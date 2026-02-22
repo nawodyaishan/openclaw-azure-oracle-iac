@@ -21,3 +21,9 @@ variable "custom_image_name" {
   # Note: Since the timestamp is dynamic, we use a regex or prefix match in the data source, 
   # or you can override this if you want a specific image name.
 }
+
+variable "ssh_public_key_path" {
+  description = "Path to the SSH public key for VM auth"
+  type        = string
+  default     = "~/.ssh/id_rsa.pub"
+}

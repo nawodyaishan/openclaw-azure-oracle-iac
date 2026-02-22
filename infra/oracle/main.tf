@@ -116,13 +116,10 @@ resource "random_password" "gateway_token" {
 
 # Get the custom Golden Image built by Packer
 data "oci_core_images" "custom_image" {
-  compartment_id           = var.compartment_ocid
-  display_name             = var.custom_image_name
-  operating_system         = "Canonical Ubuntu"
-  operating_system_version = "22.04"
-  shape                    = "VM.Standard.E2.1.Micro"
-  sort_by                  = "TIMECREATED"
-  sort_order               = "DESC"
+  compartment_id = var.compartment_ocid
+  display_name   = var.custom_image_name
+  sort_by        = "TIMECREATED"
+  sort_order     = "DESC"
 }
 
 data "oci_identity_availability_domains" "ads" {
@@ -148,6 +145,7 @@ resource "oci_core_instance" "main" {
   }
 
   metadata = {
+    ssh_authorized_keys = file(var.ssh_public_key_path)
     user_data = base64encode(templatefile("${path.module}/cloud-init.tftpl", {
       gateway_token = random_password.gateway_token.result
     }))

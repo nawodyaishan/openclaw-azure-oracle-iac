@@ -15,18 +15,15 @@ packer {
 
 variable "compartment_ocid" {
   type    = string
-  default = "${env("OCI_COMPARTMENT_OCID")}"
 }
 
 variable "subnet_ocid" {
   type    = string
-  default = "${env("OCI_SUBNET_OCID")}"
   description = "A subnet to spin up the build instance"
 }
 
 variable "availability_domain" {
   type    = string
-  default = "${env("OCI_AVAILABILITY_DOMAIN")}"
 }
 
 # -----------------------------------------------------------------------------
@@ -67,12 +64,13 @@ build {
       "sudo apt-get upgrade -y",
       "echo 'Installing base tools...'",
       "sudo apt-get install -y curl git tmux",
-      "echo 'Installing OpenClaw CLI...'",
-      "curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install-cli.sh | bash",
+      "echo 'Installing Node.js globally...'",
+      "curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -",
+      "sudo apt-get install -y nodejs",
+      "echo 'Installing OpenClaw globally...'",
+      "sudo npm install -g @openclaw/cli",
       "echo 'Validating OpenClaw installation...'",
-      "export NVM_DIR=\"$HOME/.nvm\"",
-      "[ -s \"$NVM_DIR/nvm.sh\" ] && \\. \"$NVM_DIR/nvm.sh\" || echo 'NVM not found'",
-      "openclaw --version || echo 'OpenClaw installed but requires shell restart.' "
+      "openclaw --version"
     ]
   }
 }

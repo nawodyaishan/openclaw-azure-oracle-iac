@@ -52,6 +52,11 @@ To run this project, you must first build a "Golden Image" (AMI/Custom Image) co
 3.  **SSH Key:** `ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa`
 4.  *(Optional)* **Azure CLI / OCI CLI** for remote state setup.
 5.  *(Optional)* **DevOps Tools:** `brew install tflint tfsec infracost terraform-docs`
+6.  **Git Hooks Engine (Husky):** Requires Node.js and `pnpm`. Initialize validations before contributing:
+    ```bash
+    npm install -g pnpm
+    pnpm install
+    ```
 
 ### 1. Build the Golden Image (Packer)
 

@@ -28,7 +28,7 @@ resource "oci_core_route_table" "this" {
     network_entity_id = oci_core_internet_gateway.this.id
   }
 
-  freeform_tags  = var.tags
+  freeform_tags = var.tags
 }
 
 resource "oci_core_subnet" "this" {
@@ -40,7 +40,7 @@ resource "oci_core_subnet" "this" {
   security_list_ids = [oci_core_vcn.this.default_security_list_id] # Default allows strict ingress, we use NSG
   route_table_id    = oci_core_route_table.this.id
 
-  freeform_tags     = var.tags
+  freeform_tags = var.tags
 }
 
 # -------------------------------------------------------------------------
